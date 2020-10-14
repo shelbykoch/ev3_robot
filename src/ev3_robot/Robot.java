@@ -7,6 +7,10 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.sensor.*;
 import lejos.hardware.port.SensorPort;
+import lejos.robotics.chassis.Chassis;
+import lejos.robotics.chassis.Wheel;
+import lejos.robotics.chassis.WheeledChassis;
+import lejos.robotics.navigation.MovePilot;
 
 public class Robot {
 	
@@ -17,6 +21,9 @@ public class Robot {
 	private final BaseRegulatedMotor rightTrack; 
 	private final BaseRegulatedMotor leftTrack; 
 	private final BaseRegulatedMotor claw;
+	
+	//Pilot
+	public MovePilot Pilot;
 	
 	//Sensors
 	public final EV3IRSensor IRSensor;
@@ -41,16 +48,21 @@ public class Robot {
 		leftTrack = new EV3LargeRegulatedMotor(MotorPort.B);
 		claw = new EV3MediumRegulatedMotor(MotorPort.D);
 		
+		//Initialize move pilot
+		Wheel leftWheel = WheeledChassis.modelWheel(leftTrack, 3.15).offset(9.01);
+		Wheel rightWheel = WheeledChassis.modelWheel(rightTrack, 3.15).offset(-9.01);
+		Chassis chassis = new WheeledChassis(new Wheel[] {leftWheel, rightWheel}, WheeledChassis.TYPE_DIFFERENTIAL); 
+		Pilot = new MovePilot(chassis);
+	
 		//Initialize sensors
 		IRSensor = new EV3IRSensor(SensorPort.S1);
+		IRSensor.setCurrentMode(0);
 		//UltrasonicSensor = new EV3UltrasonicSensor(SensorPort.S2);
 		//ColorSensor = new EV3ColorSensor(SensorPort.S3);
 		
 		//Set States 
 		SetClawState(ClawState.OPENED);
-		
-		
-	}
+		}
 	
 	///// PUBLIC FUNCTIONS ///////////
 	
@@ -60,18 +72,6 @@ public class Robot {
 		return robot_instance;
 	}
 	
-	//Methods
-	public void Forward() {
-		//Add code to move robot forward, include parameters for speed, duration, etc...
-	}
-	
-	public void Backward() {
-		//Add code to move robot backward, include parameters for speed, duration, etc...
-	}
-	
-	public void RotateClockwise() {
-		
-	}
 	
 	public void OpenClaw()
 	{
