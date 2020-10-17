@@ -1,6 +1,10 @@
 package ev3_robot;
 
+import java.awt.dnd.DropTargetListener;
+
 import lejos.hardware.Sound;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.GraphicsLCD;
 import lejos.hardware.motor.BaseRegulatedMotor;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
@@ -11,6 +15,7 @@ import lejos.robotics.chassis.Chassis;
 import lejos.robotics.chassis.Wheel;
 import lejos.robotics.chassis.WheeledChassis;
 import lejos.robotics.navigation.MovePilot;
+import lejos.hardware.lcd.*;
 
 public class Robot {
 	
@@ -24,11 +29,15 @@ public class Robot {
 	
 	//Pilot
 	public MovePilot Pilot;
+	public WheeledChassis Chassis;
 	
 	//Sensors
 	public final EV3IRSensor IRSensor;
 	//public final EV3ColorSensor ColorSensor;
 	//public final EV3UltrasonicSensor UltrasonicSensor;
+	
+	//LCD
+	GraphicsLCD display;
 	
 	//States
 	private ClawState clawState;
@@ -51,8 +60,11 @@ public class Robot {
 		//Initialize move pilot
 		Wheel leftWheel = WheeledChassis.modelWheel(leftTrack, 3.15).offset(9.01);
 		Wheel rightWheel = WheeledChassis.modelWheel(rightTrack, 3.15).offset(-9.01);
-		Chassis chassis = new WheeledChassis(new Wheel[] {leftWheel, rightWheel}, WheeledChassis.TYPE_DIFFERENTIAL); 
+		WheeledChassis chassis = new WheeledChassis(new Wheel[] {leftWheel, rightWheel}, WheeledChassis.TYPE_DIFFERENTIAL); 
 		Pilot = new MovePilot(chassis);
+		Chassis = chassis;
+		
+		display = LocalEV3.get().getGraphicsLCD();
 	
 		//Initialize sensors
 		IRSensor = new EV3IRSensor(SensorPort.S1);
