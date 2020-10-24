@@ -1,74 +1,54 @@
 package ev3_robot;
+
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.Vector;
-import java.util.concurrent.TimeUnit;
+
+import lejos.hardware.Battery;
 import lejos.hardware.Button;
-import lejos.hardware.lcd.GraphicsLCD;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
-		ColorThread colorThread = new ColorThread();
-		colorThread.run();
-	}
-}
-
-class ColorThread extends Thread {
-
-	float[] sensor_val = new float[1];
-	MoveThread moveThread;
-	Robot robot;
-
-	public void run() {
-		try {
-			robot = Robot.getInstance();
-			moveThread = new MoveThread();
-			moveThread.run();
-			while (Button.ESCAPE.isUp()) {
-				robot.ColorSensor.getRedMode().fetchSample(sensor_val, 0);
-				moveThread.SetColor(sensor_val[0]);
-			}
-
-		} catch (Exception e) {
-			System.out.println("Exception is caught on move thread");
-		}
-
-	}
-
-	class MoveThread extends Thread {
-
+		WriteBatteryLog();
 		Robot robot = Robot.getInstance();
-		float color;
+		float[] sensor_val = new float[1];
+		float color = 0.35f;
 		float target = 0.35f;
+		float offset = 0.0f;
+		int fullspeed = 270;
+		float multiplier = 1.7f;
+		
+		
 
-		public void run() {
-			try {
-				robot = Robot.getInstance();
-				robot.Pilot.forward();
-				while (Button.ESCAPE.isUp()) {
-					// offset = color - target;
-					if (color > target) {
-						robot.rightTrack.setSpeed(360);
-						robot.leftTrack.setSpeed(180);
-					} else if (color < target) {
-						robot.rightTrack.setSpeed(180);
-						robot.leftTrack.setSpeed(360);
-					} else {
-						robot.rightTrack.setSpeed(360);
-						robot.leftTrack.setSpeed(360);
-					}
-				}
-			} catch (Exception e) {
-				System.out.println("Exception is caught on move thread");
+		robot.Pilot.forward();
+		while (Button.ESCAPE.isUp()) {
+			robot.ColorSensor.getRedMode().fetchSample(sensor_val, 0);
+			color = sensor_val[0];
+			offset = color - target;
+			if (offset > 0) {
+				robot.rightTrack.setSpeed(fullspeed);
+				robot.leftTrack.setSpeed(fullspeed * (1 - offset*multiplier));
+			} else if (offset < 0) {
+				robot.rightTrack.setSpeed(fullspeed * (1 + offset*multiplier));
+				robot.leftTrack.setSpeed(fullspeed);
+			} else {
+				robot.rightTrack.setSpeed(360);
+				robot.leftTrack.setSpeed(360);
 			}
 		}
+	}
 
-		public void SetColor(float value) {
-			color = value;
+	public static void WriteBatteryLog() {
+		try {
+		FileWriter fw = new FileWriter("batterylog.txt", true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		PrintWriter out = new PrintWriter(bw);
+		out.println(String.valueOf(Battery.getVoltage()));
+		out.close();
+		} catch (Exception ex)
+		{
+			
 		}
 	}
+
 }

@@ -10,6 +10,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.sensor.*;
+import lejos.hardware.Sound;
 import lejos.hardware.port.SensorPort;
 import lejos.robotics.chassis.Chassis;
 import lejos.robotics.chassis.Wheel;
