@@ -36,9 +36,6 @@ public class Robot {
 	public final EV3ColorSensor ColorSensor;
 	//public final EV3UltrasonicSensor UltrasonicSensor;
 	
-	//LCD
-	GraphicsLCD display;
-	
 	//States
 	private ClawState clawState;
 	
@@ -63,9 +60,7 @@ public class Robot {
 		WheeledChassis chassis = new WheeledChassis(new Wheel[] {leftWheel, rightWheel}, WheeledChassis.TYPE_DIFFERENTIAL); 
 		Pilot = new MovePilot(chassis);
 		Chassis = chassis;
-		
-		display = LocalEV3.get().getGraphicsLCD();
-	
+
 		//Initialize sensors
 		IRSensor = new EV3IRSensor(SensorPort.S1);
 		IRSensor.setCurrentMode(0);
