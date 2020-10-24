@@ -23,8 +23,8 @@ public class Robot {
 	private static Robot robot_instance = new Robot();
 	
 	//Motors
-	private final BaseRegulatedMotor rightTrack; 
-	private final BaseRegulatedMotor leftTrack; 
+	public final BaseRegulatedMotor rightTrack; 
+	public final BaseRegulatedMotor leftTrack; 
 	private final BaseRegulatedMotor claw;
 	
 	//Pilot
@@ -33,7 +33,7 @@ public class Robot {
 	
 	//Sensors
 	public final EV3IRSensor IRSensor;
-	//public final EV3ColorSensor ColorSensor;
+	public final EV3ColorSensor ColorSensor;
 	//public final EV3UltrasonicSensor UltrasonicSensor;
 	
 	//LCD
@@ -69,8 +69,8 @@ public class Robot {
 		//Initialize sensors
 		IRSensor = new EV3IRSensor(SensorPort.S1);
 		IRSensor.setCurrentMode(0);
-		//UltrasonicSensor = new EV3UltrasonicSensor(SensorPort.S2);
-		//ColorSensor = new EV3ColorSensor(SensorPort.S3);
+		ColorSensor = new EV3ColorSensor(SensorPort.S2);
+		//UltrasonicSensor = new EV3UltrasonicSensor(SensorPort.S3);
 		
 		//Set States 
 		SetClawState(ClawState.OPENED);

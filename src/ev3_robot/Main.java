@@ -9,59 +9,76 @@ import java.io.PrintWriter;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
+import lejos.hardware.Button;
 import lejos.hardware.lcd.GraphicsLCD;
 
-public class Main{
-    public static void main(String[] args) throws Exception {
-    	Robot robot = Robot.getInstance();
-    	/*robot.OpenClaw();
-    	robot.CloseClaw();
-    	robot.CloseClaw();
-    	robot.OpenClaw();*/
-    	
-    	//robot.Pilot.travel(30.48);
-    	//robot.Pilot.rotate(-360);
-    	//robot.Pilot.backward();
-    	MoveThread moveThread = new MoveThread();
-    	moveThread.run();
-	
-    }
+public class Main {
+	public static void main(String[] args) throws Exception {
+		Robot robot = Robot.getInstance();
+		ColorThread colorThread = new ColorThread();
+		colorThread.run();
+	}
 }
 
-class MoveThread extends Thread { 
-	
-	public void run() { 
-		try { 
-			Robot robot = Robot.getInstance();
-			robot.Pilot.travel(100); 
-	    	DisplayThread displayThread = new DisplayThread();
-	    	displayThread.run();  
-			} 
-		catch (Exception e) { 
-				System.out.println("Exception is caught on travel thread"); 
-		} 
-	} 
+class ColorThread extends Thread {
+
+	float[] sensor_val = new float[1];
+	MoveThread moveThread;
+	Robot robot;
+
+	public void run() {
+		try {
+			robot = Robot.getInstance();
+			moveThread = new MoveThread();
+			moveThread.run();
+			while(Button.ESCAPE.isUp()) {
+				robot.ColorSensor.getRedMode().fetchSample(sensor_val, 0);
+				moveThread.SetColor(sensor_val[0]);
+			}
+
+		} catch (Exception e) {
+			System.out.println("Exception is caught on move thread");
+		}
+
+	}
+
 }
 
-class DisplayThread extends Thread { 
-	public void run() { 
-		try { 
-			Robot robot = Robot.getInstance();
-	    	float[] sample = new float[1];
-	    	
-	    	FileWriter fw = new FileWriter("log3.txt", true);
-	        BufferedWriter bw = new BufferedWriter(fw);
-	        PrintWriter out = new PrintWriter(bw);
-	    	
-	    	for(int i = 0; i < 100; i++)
-	    	{
-	    		robot.IRSensor.fetchSample(sample, 0);
-	    		out.println(String.valueOf(sample[0]));
-	    	}    		
-	    	out.close();
-			} catch (Exception e) 
-		{ 
-				System.out.println("Exception is caught on travel thread"); 
-		} 
-	} 
+class MoveThread extends Thread {
+
+	Robot robot = Robot.getInstance();
+	float color;
+	float offset;
+	float target = 0.35f;
+
+	public void run() {
+		try {
+			robot = Robot.getInstance();
+			robot.Pilot.forward();
+			while(Button.ESCAPE.isUp()) {
+				//offset = color - target;
+				if(color > target)
+				{
+					robot.rightTrack.setSpeed(360);
+					robot.leftTrack.setSpeed(180);
+				}
+				else if (color < target)
+				{
+					robot.rightTrack.setSpeed(180);
+					robot.leftTrack.setSpeed(360);
+				}
+				else
+				{
+					robot.rightTrack.setSpeed(360);
+					robot.leftTrack.setSpeed(360);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Exception is caught on move thread");
+		}
+	}
+	
+	public void SetColor(float value) {
+		color = value;
+	}
 }
