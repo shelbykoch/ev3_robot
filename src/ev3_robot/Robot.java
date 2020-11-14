@@ -20,6 +20,10 @@ import lejos.hardware.lcd.*;
 
 public class Robot {
 	
+	//board stuff
+	public int row_pos = 0;
+	public int col_pos = 7;
+	
 	//Global instance
 	private static Robot robot_instance = new Robot();
 	
@@ -70,6 +74,7 @@ public class Robot {
 		
 		//Set States 
 		SetClawState(ClawState.OPENED);
+	
 		}
 	
 	///// PUBLIC FUNCTIONS ///////////
