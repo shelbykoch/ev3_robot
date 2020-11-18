@@ -6,11 +6,12 @@ public class Tile {
 	public Legend State;
 	
 	//Size of tile -> used to traverse map 
-	public static float Size = 17.0f;
+	public static float Size;
 		
 	//Constructor
-	public Tile()
+	public Tile(float size)
 	{
+		Tile.Size = size;
 		this.State = Legend.Unknown;
 	}
 	

@@ -40,10 +40,6 @@ public class Robot {
 	private ClawState clawState;
 	public Heading Heading;
 
-	// Robot location for Map
-	public int Col;
-	public int Row;
-
 	// State Enumerators
 	private enum ClawState {
 		OPENED, CLOSED

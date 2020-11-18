@@ -4,14 +4,17 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
+import ev3_robot.Enums.Heading;
 import lejos.hardware.Battery;
 import lejos.hardware.Button;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
-		Robot robot = Robot.getInstance();
-		Mapping map = new Mapping(robot);
-		map.Traverse();
+		//Initiate map with rows, columns, and tile size
+		Map map = new Map(7,5,17.0f);
+		//This class acts as both navigator and pilot
+		MapPilot pilot = new MapPilot(map);
+		pilot.Traverse();
 	}
 	
 }
