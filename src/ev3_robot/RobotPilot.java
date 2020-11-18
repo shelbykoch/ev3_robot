@@ -1,5 +1,4 @@
 package ev3_robot;
-import ev3_robot.Enums.Legend;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,8 +17,8 @@ public class RobotPilot {
 	}
 	
 	
-	public void RowMoveForwardOneTile(Robot robot) {
-		robot.Pilot.travel(map.tile_size);
+	public void RowMoveForwardOneTile(Robot robot) throws InterruptedException {
+		robot.Pilot.travel(Tile.Size);
 		TimeUnit.SECONDS.sleep(1);
 		
 		if(this.currentHeading == Heading.East) {
