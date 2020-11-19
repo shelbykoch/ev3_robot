@@ -3,6 +3,7 @@ package ev3_robot;
 import java.util.concurrent.TimeUnit;
 
 import ev3_robot.Enums.Heading;
+import ev3_robot.Tile.Legend;
 
 public class MapPilot {
 	// Robot object
@@ -22,7 +23,7 @@ public class MapPilot {
 
 	// Value for 90 degree rotation (may be adjusted to account for under or over
 	// rotation
-	private int rotationMultiplier = 94;
+	private int rotationMultiplier = 90;
 
 	public MapPilot(Map context) {
 		map = context;
@@ -48,12 +49,16 @@ public class MapPilot {
 	// Once it is one a particular row, it will traverse across all tiles on that
 	// particular row
 	private void TraverseRow() throws InterruptedException {
-		for (int i = 0; i < map.GetCol() - 1; i++) {
-			// Travel one tile
-			ForwardOne();
-			// Check for obstacle or ball
-		}
+		int targetCol;
+		if (Heading == Heading.East)
+			targetCol = map.GetCol() - 1;
+		else
+			targetCol = 0;
 
+		while (col != targetCol) {
+			ForwardOne();
+			CheckForObstacle();
+		}
 	}
 
 	// Moves robot north on row to begin new traversal movement
@@ -83,7 +88,7 @@ public class MapPilot {
 	// Moves robot forward one square in the direction it is facing
 	// Iterates the current row or col value accordingly
 	public void ForwardOne() throws InterruptedException {
-		//Move forward one tile
+		// Move forward one tile
 		robot.Pilot.travel(Tile.Size);
 		// Update robot location
 		switch (Heading) {
@@ -128,7 +133,21 @@ public class MapPilot {
 	// Compare sensor reading to expected distance to wall
 	// If it is close enough tag the tile as having an obstacle
 	// Avoid the square, and continue to traverse the loop
-	private void CheckForObstacle() {
-
+	private void CheckForObstacle() throws InterruptedException {
+		
+		float[] sample = new float[1];
+		// Create float array to store values from sensor
+		robot.IRSensor.fetchSample(sample, 0);
+		if(sample[0] < 8 && col != 0 && col != map.GetCol()-1)
+		{
+			int tileOffset = 0;
+			if(Heading == Heading.East)
+				tileOffset++;
+			else
+				tileOffset--;
+			lejos.hardware.Sound.beep();
+			map.SetTile(row, (col+tileOffset), Legend.Obstacle);
+			TimeUnit.SECONDS.sleep(3);
+		}
 	}
 }
