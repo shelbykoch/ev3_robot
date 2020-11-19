@@ -12,8 +12,8 @@ public class Main {
 		//Initiate map with rows, columns, and tile size
 		Map map = new Map(7,6,17.5f);
 		//This class acts as both navigator and pilot
-		//MapPilot pilot = new MapPilot(map);
-		//pilot.Traverse();
+		MapPilot pilot = new MapPilot(map);
+		pilot.Traverse();
 		map.PrintMap();
 	}
 	

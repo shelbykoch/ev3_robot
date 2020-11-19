@@ -39,7 +39,7 @@ public class Map {
 	}
 
 	public void SetTile(int row, int col, Tile.Legend state) {
-		this.map[row][col].State = state;
+		this.map[row][col].SetState(state);
 	}
 
 	public Tile GetTile(int row, int col) {
@@ -64,7 +64,7 @@ public class Map {
 		try {
 			for (int r = 0; r < row; r++) {
 				for (int c = 0; c < col; c++) {
-					if (map[r][c].State != Legend.Unknown) {
+					if (map[r][c].GetState() != Legend.Unknown) {
 						line += "X "; 
 					} else {
 						line += "0 ";

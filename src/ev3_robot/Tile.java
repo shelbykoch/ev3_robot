@@ -3,7 +3,7 @@ package ev3_robot;
 public class Tile {
 	
 	//Holds state of tile
-	public Legend State;
+	private Legend state;
 	
 	//Size of tile -> used to traverse map 
 	public static float Size;
@@ -12,7 +12,7 @@ public class Tile {
 	public Tile(float size)
 	{
 		Tile.Size = size;
-		this.State = Legend.Unknown;
+		this.state = Legend.Unknown;
 	}
 	
 	//Enum for tile states
@@ -22,5 +22,15 @@ public class Tile {
 		Obstacle,
 		Line,
 		Ball
+	}
+	
+	public void SetState(Legend state)
+	{	
+		this.state = state;
+	}
+	
+	public Legend GetState()
+	{
+		return this.state;
 	}
 }
