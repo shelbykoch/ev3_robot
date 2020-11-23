@@ -80,6 +80,38 @@ public class MapPilot {
 
 	private void AvoidObstacle() throws InterruptedException {
 
+		//OBSTACLE AVOIDANCE
+		//Turn LEFT and then go around the object UNLESS we are on the last row, then we should turn RIGHT and go around
+		//Our traversal goes: Turn left -> Forward -> Turn Right -> Forward until Ultrasonic sensor doesnt see the object
+		// -> Turn right -> Forward -> Turn left and we should be facing the original direction
+		float[] sample = new float[1];
+		
+		Heading targetHeading;
+
+		if (Heading == Heading.East)
+			targetHeading = Heading.West;
+		else
+			targetHeading = Heading.East;
+		
+		//Begin avoidance
+		FaceDirection(Heading.North);
+		//If on the last row we go south to avoid instead
+			
+		ForwardOne();
+		FaceDirection(targetHeading);
+		
+		//While the UltrasonicSensor senses the object still, move forward
+		//Pause added because UltrasonicSensor needs time to reset
+		robot.UltrasonicSensor.fetchSample(sample, 0);
+		while(sample[0] < 60){
+			ForwardOne();
+			TimeUnit.SECONDS.sleep(1);
+			robot.UltrasonicSensor.fetchSample(sample, 0);
+		}
+		
+		FaceDirection(Heading.South);
+		ForwardOne();
+		FaceDirection(targetHeading);	
 	}
 
 	// ------------------Atomic Actions--------------------------//
@@ -138,6 +170,7 @@ public class MapPilot {
 		float[] sample = new float[1];
 		// Create float array to store values from sensor
 		robot.IRSensor.fetchSample(sample, 0);
+		//Check if IR SENSOR has found an obstacle
 		if(sample[0] < 8 && col != 0 && col != map.GetCol()-1)
 		{
 			int tileOffset = 0;
@@ -146,8 +179,10 @@ public class MapPilot {
 			else
 				tileOffset--;
 			lejos.hardware.Sound.beep();
+			//Mark the tile we just checked out as an obstacle
 			map.SetTile(row, (col+tileOffset), Legend.Obstacle);
 			TimeUnit.SECONDS.sleep(3);
+			AvoidObstacle();
 		}
 	}
 }
