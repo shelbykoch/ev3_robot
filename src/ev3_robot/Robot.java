@@ -11,6 +11,7 @@ import lejos.hardware.port.MotorPort;
 import lejos.hardware.sensor.*;
 import lejos.hardware.Sound;
 import lejos.hardware.port.SensorPort;
+import lejos.robotics.SampleProvider;
 import lejos.robotics.chassis.Chassis;
 import lejos.robotics.chassis.Wheel;
 import lejos.robotics.chassis.WheeledChassis;
@@ -34,7 +35,7 @@ public class Robot {
 	// Sensors
 	public final EV3IRSensor IRSensor;
 	public final EV3ColorSensor ColorSensor;
-	// public final EV3UltrasonicSensor UltrasonicSensor;
+	public final NXTUltrasonicSensor UltrasonicSensor;
 
 	// States
 	private ClawState clawState;
@@ -63,7 +64,9 @@ public class Robot {
 		IRSensor = new EV3IRSensor(SensorPort.S1);
 		IRSensor.setCurrentMode(0);
 		ColorSensor = new EV3ColorSensor(SensorPort.S2);
-		// UltrasonicSensor = new EV3UltrasonicSensor(SensorPort.S3);
+		UltrasonicSensor = new NXTUltrasonicSensor(SensorPort.S3);
+		UltrasonicSensor.getDistanceMode();
+		SampleProvider range = UltrasonicSensor.getDistanceMode();
 
 		// Set States
 		SetClawState(ClawState.OPENED);
