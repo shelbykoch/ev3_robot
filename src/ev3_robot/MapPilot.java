@@ -25,14 +25,18 @@ public class MapPilot {
 	// rotation
 	private int rotationMultiplier = 90;
 
+	// location of goal to score
+	private int goalRow = 1;
+	private int goalCol = 5;
+
 	public MapPilot(Map context) {
 		map = context;
 		robot = Robot.getInstance();
 
 		// This configuration assumes the robot is placed in the bottom left corner
 		// (with 0,0 being the top left), facing the right
-		row = map.GetRow() - 1;
-		col = 0;
+		row = 17;
+		col = 4;
 		Heading = Heading.East;
 	}
 
@@ -41,14 +45,15 @@ public class MapPilot {
 	// Uses a loop to iterate all rows of the map
 	public void Traverse() throws InterruptedException {
 		for (int i = 0; i < map.GetRow(); i++) {
-			TraverseRow();
+			if (TraverseRow())
+				return;
 			NorthOneRow();
 		}
 	}
 
 	// Once it is one a particular row, it will traverse across all tiles on that
 	// particular row
-	private void TraverseRow() throws InterruptedException {
+	private boolean TraverseRow() throws InterruptedException {
 		int targetCol;
 		if (Heading == Heading.East)
 			targetCol = map.GetCol() - 1;
@@ -58,7 +63,13 @@ public class MapPilot {
 		while (col != targetCol) {
 			ForwardOne();
 			CheckForObstacle();
+			if (robot.Swivel()) {
+				NavigateToGoal();
+				robot.Score();
+				return true;
+			}
 		}
+		return false;
 	}
 
 	// Moves robot north on row to begin new traversal movement
@@ -78,40 +89,74 @@ public class MapPilot {
 		}
 	}
 
+	public void NavigateToGoal() throws InterruptedException {
+		// Count the rows to traverse
+		int targetRow = goalRow - row;
+
+		// Count the columns to traverse
+		int targetCol = goalCol - col;
+
+		// If goal is to the right of the robot's location, face east
+		if (targetCol > 0) {
+			FaceDirection(Heading.East);
+		//else, face west
+		} else {
+			FaceDirection(Heading.West);
+		}
+		
+		//Traverse the difference between the robot's current column and the goal column
+		while(col != goalCol)
+		{
+			ForwardOne();
+			CheckForObstacle();
+		}
+		
+		//Face north
+		FaceDirection(Heading.North);
+		
+		//Traverse the necessary columns north to score the goal
+		while(row != goalRow)
+		{
+			ForwardOne();
+		}
+	}
+
 	private void AvoidObstacle() throws InterruptedException {
 
-		//OBSTACLE AVOIDANCE
-		//Turn LEFT and then go around the object UNLESS we are on the last row, then we should turn RIGHT and go around
-		//Our traversal goes: Turn left -> Forward -> Turn Right -> Forward until Ultrasonic sensor doesnt see the object
-		// -> Turn right -> Forward -> Turn left and we should be facing the original direction
+		// OBSTACLE AVOIDANCE
+		// Turn LEFT and then go around the object UNLESS we are on the last row, then
+		// we should turn RIGHT and go around
+		// Our traversal goes: Turn left -> Forward -> Turn Right -> Forward until
+		// Ultrasonic sensor doesnt see the object
+		// -> Turn right -> Forward -> Turn left and we should be facing the original
+		// direction
 		float[] sample = new float[1];
-		
+
 		Heading targetHeading;
 
 		if (Heading == Heading.East)
 			targetHeading = Heading.West;
 		else
 			targetHeading = Heading.East;
-		
-		//Begin avoidance
+
+		// Begin avoidance
 		FaceDirection(Heading.North);
-		//If on the last row we go south to avoid instead
-			
+		// If on the last row we go south to avoid instead
 		ForwardOne();
 		FaceDirection(targetHeading);
-		
-		//While the UltrasonicSensor senses the object still, move forward
-		//Pause added because UltrasonicSensor needs time to reset
+
+		// While the UltrasonicSensor senses the object still, move forward
+		// Pause added because UltrasonicSensor needs time to reset
 		robot.UltrasonicSensor.fetchSample(sample, 0);
-		while(sample[0] < 60){
+		while (sample[0] < 60) {
 			ForwardOne();
 			TimeUnit.SECONDS.sleep(1);
 			robot.UltrasonicSensor.fetchSample(sample, 0);
 		}
-		
+
 		FaceDirection(Heading.South);
 		ForwardOne();
-		FaceDirection(targetHeading);	
+		FaceDirection(targetHeading);
 	}
 
 	// ------------------Atomic Actions--------------------------//
@@ -166,21 +211,20 @@ public class MapPilot {
 	// If it is close enough tag the tile as having an obstacle
 	// Avoid the square, and continue to traverse the loop
 	private void CheckForObstacle() throws InterruptedException {
-		
+
 		float[] sample = new float[1];
 		// Create float array to store values from sensor
 		robot.IRSensor.fetchSample(sample, 0);
-		//Check if IR SENSOR has found an obstacle
-		if(sample[0] < 8 && col != 0 && col != map.GetCol()-1)
-		{
+		// Check if IR SENSOR has found an obstacle
+		if (sample[0] < 5.0f && col > 4 && col < map.GetCol() - 4) {
 			int tileOffset = 0;
-			if(Heading == Heading.East)
+			if (Heading == Heading.East)
 				tileOffset++;
 			else
 				tileOffset--;
 			lejos.hardware.Sound.beep();
-			//Mark the tile we just checked out as an obstacle
-			map.SetTile(row, (col+tileOffset), Legend.Obstacle);
+			// Mark the tile we just checked out as an obstacle
+			map.SetTile(row, (col + tileOffset), Legend.Obstacle);
 			TimeUnit.SECONDS.sleep(3);
 			AvoidObstacle();
 		}

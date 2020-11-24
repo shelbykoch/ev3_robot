@@ -16,6 +16,7 @@ import lejos.robotics.chassis.Chassis;
 import lejos.robotics.chassis.Wheel;
 import lejos.robotics.chassis.WheeledChassis;
 import lejos.robotics.navigation.MovePilot;
+import lejos.utility.Delay;
 import lejos.hardware.lcd.*;
 import ev3_robot.Enums.Heading;
 
@@ -45,6 +46,16 @@ public class Robot {
 	private enum ClawState {
 		OPENED, CLOSED
 	}
+	
+	public enum RobotState {
+		Searching,
+		BallDetected,
+		BallSecured,
+		NavigatingToGoal,
+		AvoidingObstacle,
+		Scoring,
+		
+	}
 
 	private Robot() {
 		// Initialize motors
@@ -69,7 +80,7 @@ public class Robot {
 		SampleProvider range = UltrasonicSensor.getDistanceMode();
 
 		// Set States
-		SetClawState(ClawState.OPENED);
+		SetClawState(ClawState.CLOSED);
 
 		// Set Heading
 		Heading = Heading.East;
@@ -81,30 +92,111 @@ public class Robot {
 	public static Robot getInstance() {
 		return robot_instance;
 	}
-
-	public void OpenClaw() {
-		if (clawState == ClawState.CLOSED) {
-			claw.setSpeed(claw.getMaxSpeed());
-			claw.rotate(1650);
-			clawState = ClawState.OPENED;
-		} else
-			Sound.twoBeeps();
-
+	
+	public boolean Swivel() {
+		//Swivels robot to detect ball
+		//Swivel to the left and then swivel to the right
+		int degrees = 5;
+		//Undo will counter the rotations. So for every positive rotation increment, undo is decremented one
+		//conversely, for every negative rotation undo is incremented one
+		int undo = 0;
+		
+		for(int i = 0; i < 7; i++)
+		{
+			Pilot.rotate(degrees);
+			undo--;
+			if(CheckForBall(undo, degrees))
+				return true;
+		}
+		
+		//Reset robot to neutral position before swiveling in other direction
+		UndoSwivel(undo, degrees);
+		undo = 0;
+		
+		//Swivel robot in other direction to search for ball
+		for(int i = 0; i < 7; i++)
+		{
+			Pilot.rotate(-degrees);
+			undo++;
+			if(CheckForBall(undo, degrees))
+				return true;
+		}
+		UndoSwivel(undo, degrees);
+		return false;
 	}
+	
+	public boolean CheckForBall(int undo, int degrees)
+	{
+		if(GetColorSensorReading() >= 0.10f)
+		{
+			CatchBall();
+			UndoSwivel(undo, degrees);
+			return true;
+		}
+		return false;
+	}
+	
+	private void UndoSwivel(int rotationCount, int rotationDegrees) {
+		Pilot.rotate(rotationCount*rotationDegrees);
+	}
+	
+	//Grab ball once directly under color sensor
+	public boolean CatchBall() {
+		//Reverse and rotate to center claw on the ball
+		Pilot.travel(-7);
+		Pilot.rotate(-25);
 
-	public void CloseClaw() {
-		if (clawState == ClawState.OPENED) {
-			claw.setSpeed(claw.getMaxSpeed());
-			claw.rotate(-1650);
-			clawState = ClawState.CLOSED;
-		} else
-			Sound.twoBeeps();
-
+		OpenClaw();
+		CloseClaw();
+		
+		//Undo moves to grab ball
+		Pilot.rotate(25);
+		Pilot.travel(7);
+		return true;
+	}
+	
+	
+	public void Score()
+	{
+		//Release the ball
+		OpenClaw();
+		Pilot.rotate(-45);
+		Pilot.travel(-30);
+		CloseClaw();
+		Pilot.rotate(225);
+		Pilot.travel(30);
+		Sound.twoBeeps();
 	}
 
 	/////// PRIVATE FUNCTIONS //////////
 
 	private void SetClawState(ClawState state) {
 		clawState = state;
+	}
+
+	private void OpenClaw() {
+		if (clawState == ClawState.CLOSED) {
+			claw.setSpeed(claw.getMaxSpeed()/3);
+			claw.rotate(-360);
+			clawState = ClawState.OPENED;
+		} else
+			Sound.twoBeeps();
+
+	}
+
+	private void CloseClaw() {
+		if (clawState == ClawState.OPENED) {
+			claw.setSpeed(claw.getMaxSpeed()/3);
+			claw.rotate(360);
+			clawState = ClawState.CLOSED;
+		} else
+			Sound.twoBeeps();
+	}
+	
+	private float GetColorSensorReading() {
+    	float[] sample = new float[1];
+   		ColorSensor.getRedMode().fetchSample(sample, 0);
+   		return sample[0];
+
 	}
 }

@@ -10,11 +10,10 @@ import lejos.hardware.Button;
 public class Main {
 	public static void main(String[] args) throws Exception {
 		//Initiate map with rows, columns, and tile size
-		Map map = new Map(7,6,17.5f);
+		Map map = new Map(23,18,6.35f);
 		//This class acts as both navigator and pilot
 		MapPilot pilot = new MapPilot(map);
 		pilot.Traverse();
-		map.PrintMap();
 	}
 	
 }
