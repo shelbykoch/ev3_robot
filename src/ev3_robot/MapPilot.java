@@ -3,6 +3,7 @@ package ev3_robot;
 import java.util.concurrent.TimeUnit;
 
 import ev3_robot.Enums.Heading;
+import lejos.hardware.Sound;
 import ev3_robot.Tile.Legend;
 
 public class MapPilot {
@@ -25,9 +26,13 @@ public class MapPilot {
 	// rotation
 	private int rotationMultiplier = 90;
 
-	// location of goal to score
-	private int goalRow = 1;
-	private int goalCol = 5;
+	// location of goal to score one point
+	private int goalRow = 3;
+	private int goalCol = 6;
+
+	// location of goal to score two points
+	// int goalRow = 1;
+	// int goalCol = 14;
 
 	public MapPilot(Map context) {
 		map = context;
@@ -35,8 +40,8 @@ public class MapPilot {
 
 		// This configuration assumes the robot is placed in the bottom left corner
 		// (with 0,0 being the top left), facing the right
-		row = 17;
-		col = 4;
+		row = 18;
+		col = 3;
 		Heading = Heading.East;
 	}
 
@@ -68,6 +73,7 @@ public class MapPilot {
 				robot.Score();
 				return true;
 			}
+
 		}
 		return false;
 	}
@@ -78,15 +84,20 @@ public class MapPilot {
 		{
 			Heading targetHeading;
 
-			if (Heading == Heading.East)
+			if (Heading == Heading.East) {
 				targetHeading = Heading.West;
-			else
+				col -= 4;
+
+			} else {
 				targetHeading = Heading.East;
+				col += 4;
+			}
 
 			FaceDirection(Heading.North);
 			ForwardOne();
 			FaceDirection(targetHeading);
 		}
+
 	}
 
 	public void NavigateToGoal() throws InterruptedException {
@@ -99,63 +110,48 @@ public class MapPilot {
 		// If goal is to the right of the robot's location, face east
 		if (targetCol > 0) {
 			FaceDirection(Heading.East);
-		//else, face west
+			// else, face west
 		} else {
 			FaceDirection(Heading.West);
 		}
-		
-		//Traverse the difference between the robot's current column and the goal column
-		while(col != goalCol)
-		{
+
+		// Traverse the difference between the robot's current column and the goal
+		// column
+		while (col != goalCol) {
 			ForwardOne();
 			CheckForObstacle();
 		}
-		
-		//Face north
+
+		// Face north
 		FaceDirection(Heading.North);
-		
-		//Traverse the necessary columns north to score the goal
-		while(row != goalRow)
-		{
+
+		// Traverse the necessary columns north to score the goal
+		while (row != goalRow) {
 			ForwardOne();
 		}
 	}
 
 	private void AvoidObstacle() throws InterruptedException {
-
 		// OBSTACLE AVOIDANCE
-		// Turn LEFT and then go around the object UNLESS we are on the last row, then
-		// we should turn RIGHT and go around
-		// Our traversal goes: Turn left -> Forward -> Turn Right -> Forward until
-		// Ultrasonic sensor doesnt see the object
-		// -> Turn right -> Forward -> Turn left and we should be facing the original
-		// direction
-		float[] sample = new float[1];
-
-		Heading targetHeading;
-
-		if (Heading == Heading.East)
-			targetHeading = Heading.West;
-		else
-			targetHeading = Heading.East;
+		int stages = 4;
+		Heading targetHeading = Heading;
+		Heading avoidanceHeading = Heading.North;
+		Heading returnHeading = Heading.South;
 
 		// Begin avoidance
-		FaceDirection(Heading.North);
-		// If on the last row we go south to avoid instead
-		ForwardOne();
-		FaceDirection(targetHeading);
-
-		// While the UltrasonicSensor senses the object still, move forward
-		// Pause added because UltrasonicSensor needs time to reset
-		robot.UltrasonicSensor.fetchSample(sample, 0);
-		while (sample[0] < 60) {
+		FaceDirection(avoidanceHeading);
+		for (int i = 0; i < stages; i++) {
 			ForwardOne();
-			TimeUnit.SECONDS.sleep(1);
-			robot.UltrasonicSensor.fetchSample(sample, 0);
 		}
-
-		FaceDirection(Heading.South);
-		ForwardOne();
+		FaceDirection(targetHeading);
+		for (int i = 0; i < stages + 3; i++) {
+			ForwardOne();
+		}
+		FaceDirection(returnHeading);
+		for (int i = 0; i < stages; i++) {
+			ForwardOne();
+		}
+		// Face the right way before the row traversal method continues
 		FaceDirection(targetHeading);
 	}
 
@@ -188,6 +184,13 @@ public class MapPilot {
 	public void FaceDirection(Heading heading) {
 		// East = 0, North = 1, West = 2; South = 3;
 		int target = (heading.ordinal() - this.Heading.ordinal());
+
+		// target with 3 or -3 will do a 270 degree rotation which is unnecessary
+		// divide by -3 to spin 90 degrees in the opposite direction to end with the
+		// the same target heading but less rotation.
+		if (target == 3 || target == -3)
+			target /= -3;
+
 		int rotation = target * rotationMultiplier;
 		robot.Pilot.rotate(rotation);
 		Heading = heading;
@@ -195,34 +198,18 @@ public class MapPilot {
 
 	// ----------------------Sensors--------------------------//
 
-	// Takes the robots current column and returns the expected distance to the wall
-	// based on the size of the tiles. This function assumes that the IR sensor is
-	// mounted on the front of the robot and thus would be from the front most edge
-	// of the currently occupied tile.
-	private float DistanceToWall() {
-		// If facing east,
-		if (Heading == Heading.East)
-			return (map.GetCol() - col) * Tile.Size;
-		else
-			return (map.GetCol() - 0) * Tile.Size;
-	}
-
 	// Compare sensor reading to expected distance to wall
 	// If it is close enough tag the tile as having an obstacle
 	// Avoid the square, and continue to traverse the loop
 	private void CheckForObstacle() throws InterruptedException {
-
-		float[] sample = new float[1];
-		// Create float array to store values from sensor
-		robot.IRSensor.fetchSample(sample, 0);
 		// Check if IR SENSOR has found an obstacle
-		if (sample[0] < 5.0f && col > 4 && col < map.GetCol() - 4) {
+		if (robot.GetIRDistance() < 7.0f && col > 2 && col < map.GetCol() - 2) {
 			int tileOffset = 0;
 			if (Heading == Heading.East)
 				tileOffset++;
 			else
 				tileOffset--;
-			lejos.hardware.Sound.beep();
+			Sound.beep();
 			// Mark the tile we just checked out as an obstacle
 			map.SetTile(row, (col + tileOffset), Legend.Obstacle);
 			TimeUnit.SECONDS.sleep(3);
