@@ -5,7 +5,7 @@ public class Tile {
 	//Holds state of tile
 	private Legend state;
 	
-	//Size of tile -> used to traverse map 
+	//Size of tile in centimeters
 	public static float Size;
 		
 	//Constructor
@@ -19,16 +19,16 @@ public class Tile {
 	public enum Legend {
 		Unknown,
 		Empty,
-		Obstacle,
-		Line,
-		Ball
+		Obstacle
 	}
 	
+	//Set state of tile
 	public void SetState(Legend state)
 	{	
 		this.state = state;
 	}
 	
+	//Get state of tile
 	public Legend GetState()
 	{
 		return this.state;

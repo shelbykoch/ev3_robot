@@ -22,6 +22,7 @@ public class Map {
 	// 2D array containing all tiles on the map
 	private Tile[][] map;
 
+	//Map constructor. Number of rows, number of columns, and size of tiles in centimeters
 	public Map(int row, int col, float tileSize) {
 		// Set map parameters
 		this.row = row;
@@ -38,22 +39,27 @@ public class Map {
 		}
 	}
 
+	//Set tile object
 	public void SetTile(int row, int col, Tile.Legend state) {
 		this.map[row][col].SetState(state);
 	}
 
+	//Get tile object
 	public Tile GetTile(int row, int col) {
 		return this.map[row][col];
 	}
 
+	//Get total number of rows of map 
 	public int GetRow() {
 		return this.row;
 	}
 
+	//Get total number of columns on map
 	public int GetCol() {
 		return this.col;
 	}
 
+	//Print map state to log on robot
 	public void PrintMap() throws IOException {
 		FileWriter fw = new FileWriter("map.txt", true);
 		BufferedWriter bw = new BufferedWriter(fw);
@@ -64,7 +70,7 @@ public class Map {
 		try {
 			for (int r = 0; r < row; r++) {
 				for (int c = 0; c < col; c++) {
-					if (map[r][c].GetState() != Legend.Unknown) {
+					if (map[r][c].GetState() == Legend.Obstacle) {
 						line += "X "; 
 					} else {
 						line += "0 ";
