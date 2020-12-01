@@ -240,7 +240,7 @@ public class MapPilot {
 					robot.Pilot.rotate(counterRotation);
 			}
 		}
-		robot.Pilot.rotate(1);
+		robot.Pilot.rotate(1); //Offset the bias of the swivel. This helps keep the robot on a straight line
 	}
 
 	// -------------------Object and Ball Detection-----------------------//
