@@ -86,6 +86,7 @@ public class MapPilot {
 		else if (state == PilotState.Scoring) {
 			NavigateToGoal();
 			Score();
+			return;
 		}
 	}
 
@@ -224,7 +225,7 @@ public class MapPilot {
 		int stages = 3;
 		int sign; // Instead of using two bespoke loops, just use a nested loop and set the sign
 					// to +1 on the first iteration and -1 on the second iteration
-		int counterRotation;
+		int counterRotation = 0;
 
 		for (int i = 0; i < 2; i++) {
 			sign = i == 0 ? 1 : -1;
@@ -236,11 +237,12 @@ public class MapPilot {
 					robot.Pilot.rotate(counterRotation);
 					state = PilotState.Scoring;
 					return;
-				} else
-					robot.Pilot.rotate(counterRotation);
+				}
 			}
+			if (state == PilotState.Searching)
+				robot.Pilot.rotate(counterRotation);
 		}
-		robot.Pilot.rotate(1); //Offset the bias of the swivel. This helps keep the robot on a straight line
+		robot.Pilot.rotate(1); // Offset the bias of the swivel. This helps keep the robot on a straight line
 	}
 
 	// -------------------Object and Ball Detection-----------------------//
@@ -298,12 +300,12 @@ public class MapPilot {
 	private boolean CatchBall() {
 		robot.OpenClaw();
 		// Reverse and rotate to center claw on the ball
-		robot.Pilot.travel(-3.5);
-		robot.Pilot.rotate(-25);
+		robot.Pilot.travel(-7);
+		robot.Pilot.rotate(-22);
 		robot.CloseClaw();
 		// Undo moves to grab ball
-		robot.Pilot.rotate(25);
-		robot.Pilot.travel(3.5);
+		robot.Pilot.rotate(22);
+		robot.Pilot.travel(7);
 		return true;
 	}
 
@@ -364,5 +366,6 @@ public class MapPilot {
 		Forward(3);
 		// Celebrate with a couple beeps
 		Sound.twoBeeps();
+		state = PilotState.Finished;
 	}
 }
